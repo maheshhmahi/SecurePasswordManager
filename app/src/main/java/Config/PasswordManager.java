@@ -1,54 +1,32 @@
 package Config;
 
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
-
-import java.security.KeyStore;
-import java.security.KeyPairGenerator;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import javax.crypto.Cipher;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Base64;
 
 public class PasswordManager {
-    private static final String KEY_ALIAS = "passwordManagerKeyAlias";
-    private KeyStore keyStore;
+    private SharedPreferences sharedPreferences;
+    private static final String PREFS_NAME = "password_manager_prefs";
 
-    public PasswordManager() throws Exception {
-        initKeyStore();
-        generateKeyPair();
+    public PasswordManager(Context context) {
+        this.sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
-    private void initKeyStore() throws Exception {
-        keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
+    public void storePassword(String appName, String password) throws Exception {
+        KeyStoreManager.generateKey();
+        byte[] encryptedPassword = KeyStoreManager.encryptData(password);
+        String encryptedPasswordBase64 = Base64.encodeToString(encryptedPassword, Base64.DEFAULT);
+
+        sharedPreferences.edit().putString(appName, encryptedPasswordBase64).apply();
     }
 
-    private void generateKeyPair() throws Exception {
-        if (!keyStore.containsAlias(KEY_ALIAS)) {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore");
-            keyPairGenerator.initialize(new KeyGenParameterSpec.Builder(
-                    KEY_ALIAS,
-                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                    .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
-                    .build());
-            keyPairGenerator.generateKeyPair();
+    public String getPassword(String appName) throws Exception {
+        String encryptedPasswordBase64 = sharedPreferences.getString(appName, null);
+        if (encryptedPasswordBase64 != null) {
+            byte[] encryptedPassword = Base64.decode(encryptedPasswordBase64, Base64.DEFAULT);
+            return KeyStoreManager.decryptData(encryptedPassword);
         }
-    }
-
-    public byte[] encryptData(String data) throws Exception {
-        PublicKey publicKey = keyStore.getCertificate(KEY_ALIAS).getPublicKey();
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        return cipher.doFinal(data.getBytes());
-    }
-
-    public String decryptData(byte[] encryptedData) throws Exception {
-        PrivateKey privateKey = (PrivateKey) keyStore.getKey(KEY_ALIAS, null);
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        return new String(cipher.doFinal(encryptedData));
+        return null;
     }
 }
 
