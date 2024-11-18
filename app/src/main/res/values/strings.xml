@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Add Password</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="Generate_password">Generate Password</string>
+    <string name="Add_password">Add</string>
+    <string name="Username">Username or Email</string>
+    <string name="Password">Password</string>
+    <string name="Website">Website</string>
+    <string name="Password_strength">Password Strength</string>
+    <string name="personal_vault">Personal Vault</string>
+    <string name="website_icon_description">Wesite Icon</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="website">Website</string>
+    <string name="Url">Url</string>
+    <string name="accessibility_service_label" />
+</resources>
