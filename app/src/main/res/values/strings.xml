@@ -16,4 +16,5 @@
     <string name="website">Website</string>
     <string name="Url">Url</string>
     <string name="accessibility_service_label" />
+    <string name="accessibility_service_description">accessibility service description</string>
 </resources>

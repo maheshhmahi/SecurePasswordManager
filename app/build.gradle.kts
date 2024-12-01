@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.myapplication"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -36,6 +36,8 @@ android {
 
 dependencies {
     val room_version = "2.6.1"
+    implementation ("org.tensorflow:tensorflow-lite:2.10.0")
+
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
     implementation ("com.github.bumptech.glide:glide:4.11.0")

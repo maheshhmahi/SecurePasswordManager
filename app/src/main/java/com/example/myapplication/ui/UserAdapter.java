@@ -1,6 +1,7 @@
 package com.example.myapplication.ui;
 
 import android.content.Context;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.myapplication.KeyStoreManager;
 
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
@@ -46,6 +48,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
             holder.websiteTextView.setText(user.getWebsite());
             holder.usernameTextView.setText(user.getUsername());
+            holder.passwordTextView.setText(Base64.encodeToString(user.getPassword(), Base64.DEFAULT));
+            //try {
+            //    holder.passwordTextView.setText(KeyStoreManager.decryptData(user.getPassword()));
+            //} catch (Exception e) {
+            //    throw new RuntimeException(e);
+           // }
+
 
             String faviconUrl = "https://www.google.com/s2/favicons?sz=64&domain=" + user.getUrl();
 
@@ -64,7 +73,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
 
         static class UserViewHolder extends RecyclerView.ViewHolder {
-            TextView header, websiteTextView, usernameTextView;
+            TextView header, websiteTextView, usernameTextView,passwordTextView;
+
             ImageView websiteIcon;
 
             public UserViewHolder(@NonNull View itemView) {
@@ -73,6 +83,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
                 websiteTextView = itemView.findViewById(R.id.websiteTextView);
                 usernameTextView = itemView.findViewById(R.id.usernameTextView);
                 websiteIcon = itemView.findViewById(R.id.websiteIcon);
+                passwordTextView = itemView.findViewById(R.id.passwordTextView);
+
             }
         }
 }

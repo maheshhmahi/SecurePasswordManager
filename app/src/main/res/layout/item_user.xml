@@ -23,26 +23,27 @@
         android:layout_width="59dp"
         android:layout_height="61dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
         android:contentDescription="@string/website_icon_description"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header" />
 
     <TextView
         android:id="@+id/websiteTextView"
-        android:layout_width="239dp"
+        android:layout_width="172dp"
         android:layout_height="24dp"
-        android:layout_marginStart="28dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="4dp"
         android:text="@string/website"
         android:textSize="16sp"
         app:layout_constraintStart_toEndOf="@id/websiteIcon"
+        app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintTop_toTopOf="@id/websiteIcon" />
 
     <TextView
         android:id="@+id/usernameTextView"
-        android:layout_width="239dp"
-        android:layout_height="25dp"
+        android:layout_width="173dp"
+        android:layout_height="23dp"
         android:layout_marginTop="8dp"
         android:text="@string/username"
         android:textColor="@android:color/darker_gray"
@@ -51,6 +52,18 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@id/websiteTextView"
         app:layout_constraintTop_toBottomOf="@id/websiteTextView" />
+
+    <TextView
+        android:id="@+id/passwordTextView"
+        android:layout_width="105dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="216dp"
+        android:layout_marginTop="4dp"
+        android:text="@string/password"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="14sp"
+        app:layout_constraintStart_toEndOf="@id/websiteIcon"
+        app:layout_constraintTop_toTopOf="@id/websiteIcon" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

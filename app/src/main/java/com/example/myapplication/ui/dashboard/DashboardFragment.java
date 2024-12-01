@@ -2,6 +2,8 @@ package com.example.myapplication.ui.dashboard;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -17,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.myapplication.KeyStoreManager;
 import com.example.myapplication.ui.AppDatabase;
 import com.example.myapplication.ui.User;
 
@@ -24,12 +27,19 @@ import com.example.myapplication.R;
 import com.example.myapplication.databinding.FragmentDashboardBinding;
 import com.example.myapplication.ui.UserDao;
 
+import java.security.KeyStore;
 import java.util.List;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 public class DashboardFragment extends Fragment {
 
     private FragmentDashboardBinding binding;
-
+    private static final String KEY_ALIAS = "MyPasswordManagerKey";
+    private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
+    private static final int GCM_TAG_LENGTH = 128;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -62,6 +72,11 @@ public class DashboardFragment extends Fragment {
             }
 
         });
+        try {
+            KeyStoreManager.generateKey();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         binding.addPasswordButton.setOnClickListener(v -> {
             String username = binding.usernameInput.getText().toString();
             String password = binding.passwordInput.getText().toString();
@@ -70,31 +85,38 @@ public class DashboardFragment extends Fragment {
             char firstLetter = Character.toUpperCase(website.charAt(0));
 
             new Thread(() -> {
-                List<User> existingUsers = userDao.getUsersDirect();
-                boolean isHeaderVisable = true;
+                try {
+                    byte[] encryptedPassword = KeyStoreManager.encryptData(password);
 
+                    List<User> existingUsers = userDao.getUsersDirect();
+                    boolean isHeaderVisable = true;
 
-                if (existingUsers != null) {
-                    for (User existingUser : existingUsers) {
-                        if (!existingUser.getWebsite().isEmpty() &&
-                                Character.toUpperCase(existingUser.getWebsite().charAt(0)) == firstLetter) {
-                            isHeaderVisable = false;
-                            break;
+                    if (existingUsers != null) {
+                        for (User existingUser : existingUsers) {
+                            if (!existingUser.getWebsite().isEmpty() &&
+                                    Character.toUpperCase(existingUser.getWebsite().charAt(0)) == firstLetter) {
+                                isHeaderVisable = false;
+                                break;
+                            }
                         }
                     }
+                    long timestamp = System.currentTimeMillis();
+
+                    User user = new User(username, encryptedPassword, website, url, isHeaderVisable, timestamp);
+                    userDao.insert(user);
+
+                    binding.getRoot().post(() -> {
+                        binding.usernameInput.getText().clear();
+                        binding.passwordInput.getText().clear();
+                        binding.websiteInput.getText().clear();
+                        binding.urlInput.getText().clear();
+                        Toast.makeText(getContext(), "User added successfully!", Toast.LENGTH_SHORT).show();
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    binding.getRoot().post(() ->
+                            Toast.makeText(getContext(), "Error while adding user!", Toast.LENGTH_SHORT).show());
                 }
-                long timestamp = System.currentTimeMillis();
-
-                User user = new User(username, password, website,url, isHeaderVisable,timestamp);
-                userDao.insert(user);
-
-                binding.getRoot().post(() -> {
-                    binding.usernameInput.getText().clear();
-                    binding.passwordInput.getText().clear();
-                    binding.websiteInput.getText().clear();
-                    binding.urlInput.getText().clear();
-                    Toast.makeText(getContext(), "User added successfully!", Toast.LENGTH_SHORT).show();
-                });
             }).start();
 
         });
@@ -143,10 +165,44 @@ public class DashboardFragment extends Fragment {
         passwordStrengthText.setTextColor(color);
     }
 
+    public static byte[] encryptData(String data) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, getSecretKey());
+        byte[] iv = cipher.getIV();
+        byte[] encryption = cipher.doFinal(data.getBytes());
 
+        // Concatenate IV and ciphertext for storage
+        byte[] encryptedData = new byte[iv.length + encryption.length];
+        System.arraycopy(iv, 0, encryptedData, 0, iv.length);
+        System.arraycopy(encryption, 0, encryptedData, iv.length, encryption.length);
+        return encryptedData;
+    }
+
+    private static SecretKey getSecretKey() throws Exception {
+        KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
+        keyStore.load(null);
+        return ((KeyStore.SecretKeyEntry) keyStore.getEntry(KEY_ALIAS, null)).getSecretKey();
+    }
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
+    public static void generateKey() throws Exception {
+        KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
+        keyStore.load(null);
+
+        if (!keyStore.containsAlias(KEY_ALIAS)) {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(
+                    KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
+            keyGenerator.init(
+                    new KeyGenParameterSpec.Builder(KEY_ALIAS,
+                            KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                            .build());
+            keyGenerator.generateKey();
+        }
+    }
+
 }
