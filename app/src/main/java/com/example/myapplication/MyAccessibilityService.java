@@ -40,7 +40,7 @@ public class MyAccessibilityService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED ||
-                event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
 
             String packageName = event.getPackageName().toString();
 
@@ -59,7 +59,11 @@ public class MyAccessibilityService extends AccessibilityService {
                     String urlText = urlName.toString();
                     if (urlText.contains(".")) {
                         Log.d("Accessibility", "Text contains a dot: " + urlText);
+                        if(urlText.length()>20){
+                              urlText = urlText.substring(0,20);
+                        }
                         String prediction = predictURL(urlText);
+
                         if(sentNotifications.contains(urlText)) {
                                 return;
                         }

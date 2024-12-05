@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.myapplication.KeyStoreManager;
+import com.example.myapplication.PasswordGenerator;
 import com.example.myapplication.ui.AppDatabase;
 import com.example.myapplication.ui.User;
 
@@ -47,7 +48,7 @@ public class DashboardFragment extends Fragment {
         AppDatabase database = AppDatabase.getDatabase(requireContext());
 
         UserDao userDao = database.userDao();
-
+        PasswordGenerator passwordGenerator = new PasswordGenerator();
 
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
@@ -77,6 +78,14 @@ public class DashboardFragment extends Fragment {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        binding.generatePasswordButton.setOnClickListener(v->{
+
+            String generatedPassword = PasswordGenerator.generateStrongPassword();
+            binding.getRoot().post(() -> binding.passwordInput.setText(generatedPassword));
+
+
+        });
         binding.addPasswordButton.setOnClickListener(v -> {
             String username = binding.usernameInput.getText().toString();
             String password = binding.passwordInput.getText().toString();

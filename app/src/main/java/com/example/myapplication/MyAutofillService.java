@@ -3,6 +3,10 @@ package com.example.myapplication;
 import android.annotation.SuppressLint;
 import android.app.assist.AssistStructure;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
+import android.net.Uri;
 import android.os.CancellationSignal;
 import android.service.autofill.*;
 import android.util.Base64;
@@ -12,10 +16,17 @@ import android.view.autofill.AutofillId;
 import android.view.autofill.AutofillValue;
 import android.widget.RemoteViews;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.example.myapplication.ui.AppDatabase;
 import com.example.myapplication.ui.User;
 import com.example.myapplication.ui.UserDao;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +65,13 @@ public class MyAutofillService extends AutofillService {
                     rvUsername.setTextViewText(R.id.usernameList, user.getUsername());
 
                     RemoteViews rvPassword = new RemoteViews(getPackageName(), R.layout.password);
-                    rvPassword.setTextViewText(R.id.passwordList, decryptedPassword);
+                    rvPassword.setTextViewText(R.id.passwordList, "************");
+                    rvPassword.setTextViewText(R.id.websiteList, user.getWebsite());
+                    rvPassword.setImageViewResource(R.id.websiteIcon,R.drawable.baseline_lock_outline_24);
+
+
+
+
                     if (usernameFields.isEmpty() || passwordFields.isEmpty()) {
                         callback.onSuccess(null);
                         return;
@@ -69,6 +86,7 @@ public class MyAutofillService extends AutofillService {
                                 .build();
                         Dataset dataset1 = new Dataset.Builder(rvPassword)
                                 .setValue(autofillId2, AutofillValue.forText(decryptedPassword))
+
                                 .build();
                         responseBuilder.addDataset(dataset);
                         responseBuilder.addDataset(dataset1);
@@ -85,7 +103,6 @@ public class MyAutofillService extends AutofillService {
 
 
     }
-
 
 
     @Override
